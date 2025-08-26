@@ -1,0 +1,50 @@
+{
+  "name": "magic-wallet-sdk",
+  "version": "0.1.0",
+  "description": "One-click wallet SDK for Stacks blockchain - instant onboarding with upgrade paths",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "stacks",
+    "bitcoin",
+    "wallet",
+    "sdk",
+    "blockchain",
+    "onboarding",
+    "web3",
+    "temporary-wallet",
+    "burner-wallet"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@stacks/connect": "^7.5.0",
+    "@stacks/network": "^6.13.0",
+    "@stacks/transactions": "^6.13.0",
+    "@stacks/wallet-sdk": "^6.13.0",
+    "@stacks/encryption": "^6.13.0",
+    "@stacks/storage": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  }
+}
