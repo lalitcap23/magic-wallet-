@@ -69,7 +69,33 @@ export interface ExportData {
     /** Wallet address */
     address: string;
     /** Export format */
-    format: 'json' | 'mnemonic' | 'privatekey';
+    format: 'json' | 'mnemonic' | 'privatekey' | 'pdf' | 'qr';
+}
+
+export interface PDFExportOptions {
+    /** Include QR codes for easy scanning */
+    includeQR?: boolean;
+    /** Add security warnings and instructions */
+    includeInstructions?: boolean;
+    /** Custom title for the PDF */
+    title?: string;
+    /** Include wallet balance if available */
+    includeBalance?: boolean;
+    /** Add timestamp */
+    includeTimestamp?: boolean;
+}
+
+export interface WalletBackupData {
+    /** Wallet information */
+    wallet: TemporaryWallet;
+    /** Network information */
+    network: string;
+    /** Export timestamp */
+    exportedAt: number;
+    /** Backup format */
+    format: string;
+    /** Security notes */
+    securityNotes: string[];
 }
 
 export interface WalletProvider {

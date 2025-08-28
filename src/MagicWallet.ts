@@ -16,7 +16,8 @@ import type {
     WalletProvider,
     EventCallback,
     WalletEvent,
-    StorageAdapter
+    StorageAdapter,
+    PDFExportOptions
 } from './types.js';
 
 import {
@@ -31,6 +32,7 @@ import {
 } from './utils.js';
 
 import { NETWORKS, FAUCET_ENDPOINTS, DEFAULT_CONFIG, WALLET_PROVIDERS, STORAGE_KEYS } from './config.js';
+import { generateWalletPDF, generateQRCode, generatePrintableHTML, downloadBlob, generateBackupData } from './export-utils.js';
 
 /**
  * Default browser storage adapter
@@ -290,6 +292,113 @@ export class MagicWallet {
         this.emitEvent('wallet_exported', { format });
 
         return exportData;
+    }
+
+    /**
+     * 📄 One-click PDF export of wallet backup (Enhanced Feature)
+     * Downloads a secure PDF backup with seed phrase, QR codes, and instructions
+     */
+    async exportWalletToPDF(options: PDFExportOptions = {}): Promise<void> {
+        if (!this.currentWallet) {
+            throw new Error('No wallet to export');
+        }
+
+        try {
+            // Generate PDF blob
+            const pdfBlob = await generateWalletPDF(
+                this.currentWallet,
+                this.config.network,
+                {
+                    includeQR: true,
+                    includeInstructions: true,
+                    includeBalance: true,
+                    includeTimestamp: true,
+                    ...options
+                }
+            );
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const filename = `magic-wallet-backup-${this.currentWallet.address.slice(0, 8)}-${timestamp}.pdf`;
+
+            // Download the PDF
+            downloadBlob(pdfBlob, filename);
+
+            this.emitEvent('wallet_exported', { format: 'pdf', filename });
+
+            console.log('✅ Wallet backup PDF generated successfully:', filename);
+        } catch (error) {
+            console.error('❌ Failed to generate PDF backup:', error);
+            throw new Error(`Failed to export wallet as PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * 📄 Generate wallet PDF blob (for Node.js environments)
+     * Returns the PDF blob without downloading it
+     */
+    async generateWalletPDFBlob(options: PDFExportOptions = {}): Promise<Blob> {
+        if (!this.currentWallet) {
+            throw new Error('No wallet to export');
+        }
+
+        try {
+            const pdfBlob = await generateWalletPDF(
+                this.currentWallet,
+                this.config.network,
+                {
+                    includeQR: true,
+                    includeInstructions: true,
+                    includeBalance: true,
+                    includeTimestamp: true,
+                    ...options
+                }
+            );
+
+            this.emitEvent('wallet_exported', { format: 'pdf-blob' });
+            return pdfBlob;
+        } catch (error) {
+            console.error('❌ Failed to generate PDF blob:', error);
+            throw new Error(`Failed to generate PDF blob: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * 🖨️ Generate printable HTML backup (Alternative to PDF)
+     * Returns HTML content that can be printed or saved
+     */
+    generatePrintableBackup(): string {
+        if (!this.currentWallet) {
+            throw new Error('No wallet to export');
+        }
+
+        try {
+            const html = generatePrintableHTML(this.currentWallet, this.config.network);
+            this.emitEvent('wallet_exported', { format: 'html' });
+            return html;
+        } catch (error) {
+            console.error('❌ Failed to generate HTML backup:', error);
+            throw new Error(`Failed to generate printable backup: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * 📱 Generate QR code for easy wallet import
+     * Returns QR code data URL for the mnemonic phrase
+     */
+    async generateWalletQR(): Promise<string> {
+        if (!this.currentWallet) {
+            throw new Error('No wallet to generate QR for');
+        }
+
+        try {
+            const qrDataUrl = await generateQRCode(this.currentWallet.mnemonic);
+            this.emitEvent('wallet_exported', { format: 'qr' });
+            return qrDataUrl;
+        } catch (error) {
+            console.error('❌ Failed to generate QR code:', error);
+            throw new Error(`Failed to generate QR code: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
     /**
