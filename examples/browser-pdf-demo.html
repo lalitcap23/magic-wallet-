@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +21,7 @@
             background: white;
             border-radius: 12px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -188,12 +189,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🪄 Magic Wallet SDK - One-Click PDF Export Demo</h1>
-        
+
         <div class="status info">
-            <strong>ℹ️ About this demo:</strong> This showcases the Magic Wallet SDK's one-click PDF export feature. 
+            <strong>ℹ️ About this demo:</strong> This showcases the Magic Wallet SDK's one-click PDF export feature.
             Create a temporary wallet, auto-fund it, and export a secure PDF backup with QR codes!
         </div>
 
@@ -202,17 +204,17 @@
                 <h4>📱 Create Wallet</h4>
                 <button id="createWallet" class="button">Create Temporary Wallet</button>
             </div>
-            
+
             <div class="feature-card">
                 <h4>💰 Fund Wallet</h4>
                 <button id="fundWallet" class="button secondary" disabled>Auto-Fund from Faucet</button>
             </div>
-            
+
             <div class="feature-card">
                 <h4>📄 Export PDF</h4>
                 <button id="exportPDF" class="button" disabled>Download PDF Backup</button>
             </div>
-            
+
             <div class="feature-card">
                 <h4>📱 Generate QR</h4>
                 <button id="generateQR" class="button secondary" disabled>Show QR Code</button>
@@ -223,12 +225,12 @@
             <h3>📱 Wallet Information</h3>
             <p><strong>Address:</strong> <span id="walletAddress" class="address"></span></p>
             <p><strong>Balance:</strong> <span id="walletBalance">Loading...</span> STX</p>
-            
+
             <div class="warning">
                 <h4>⚠️ Security Warning</h4>
                 <p>This is a demo wallet. Never use real funds with temporary wallets in production!</p>
             </div>
-            
+
             <div id="mnemonicDisplay" class="mnemonic" style="display: none;">
                 <h4>🔑 Seed Phrase (Mnemonic)</h4>
                 <p>Keep this secure! This is your wallet backup.</p>
@@ -260,7 +262,7 @@
     <script type="module">
         // For demo purposes, we'll simulate the Magic Wallet SDK
         // In production, you would import from your built SDK
-        
+
         let currentWallet = null;
         let magicWallet = null;
 
@@ -277,11 +279,11 @@
             document.getElementById('fundWallet').disabled = !hasWallet;
             document.getElementById('exportPDF').disabled = !hasWallet;
             document.getElementById('generateQR').disabled = !hasWallet;
-            
+
             if (hasWallet) {
                 document.getElementById('walletInfo').style.display = 'block';
                 document.getElementById('walletAddress').textContent = currentWallet.address;
-                
+
                 // Display mnemonic words
                 const mnemonicWords = currentWallet.mnemonic.split(' ');
                 const wordsContainer = document.getElementById('mnemonicWords');
@@ -300,21 +302,21 @@
         document.getElementById('createWallet').addEventListener('click', async () => {
             try {
                 log('Creating temporary wallet...');
-                
+
                 // Simulate wallet creation (in real app, this would use the SDK)
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                
+
                 currentWallet = {
                     address: 'ST' + Math.random().toString(36).substring(2, 30).toUpperCase(),
                     mnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
                     privateKey: '0x' + Math.random().toString(16).substring(2, 66),
                     balance: 0
                 };
-                
+
                 log('✅ Temporary wallet created successfully!', 'success');
                 log(`Address: ${currentWallet.address}`);
                 updateUI();
-                
+
             } catch (error) {
                 log(`Wallet creation failed: ${error.message}`, 'error');
             }
@@ -324,16 +326,16 @@
         document.getElementById('fundWallet').addEventListener('click', async () => {
             try {
                 log('Requesting funds from testnet faucet...');
-                
+
                 // Simulate faucet request
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                
+
                 currentWallet.balance = 1000 + Math.floor(Math.random() * 1000);
                 document.getElementById('walletBalance').textContent = currentWallet.balance;
-                
+
                 log('✅ Wallet funded successfully!', 'success');
                 log(`Received ${currentWallet.balance} STX from faucet`);
-                
+
             } catch (error) {
                 log(`Funding failed: ${error.message}`, 'error');
             }
@@ -343,10 +345,10 @@
         document.getElementById('exportPDF').addEventListener('click', async () => {
             try {
                 log('Generating PDF backup...');
-                
+
                 // Simulate PDF generation
                 await new Promise(resolve => setTimeout(resolve, 1500));
-                
+
                 // Create a simple text file as demo (real SDK would create PDF)
                 const content = `MAGIC WALLET BACKUP
 ===================
@@ -387,10 +389,10 @@ Instructions for importing:
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
-                
+
                 log('✅ PDF backup downloaded successfully!', 'success');
                 log('💡 In production, this would be a proper PDF with QR codes');
-                
+
             } catch (error) {
                 log(`PDF export failed: ${error.message}`, 'error');
             }
@@ -400,7 +402,7 @@ Instructions for importing:
         document.getElementById('generateQR').addEventListener('click', async () => {
             try {
                 log('Generating QR code...');
-                
+
                 // Create a simple QR code placeholder
                 const qrContainer = document.getElementById('qrCodeContainer');
                 qrContainer.innerHTML = `
@@ -414,12 +416,12 @@ Instructions for importing:
                         ${currentWallet.mnemonic}
                     </p>
                 `;
-                
+
                 document.getElementById('qrDisplay').style.display = 'block';
-                
+
                 log('✅ QR code generated successfully!', 'success');
                 log('💡 In production, this would be a real QR code using the qrcode library');
-                
+
             } catch (error) {
                 log(`QR generation failed: ${error.message}`, 'error');
             }
@@ -429,4 +431,5 @@ Instructions for importing:
         log('Click "Create Temporary Wallet" to begin!');
     </script>
 </body>
+
 </html>

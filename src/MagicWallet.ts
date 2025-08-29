@@ -33,6 +33,7 @@ import {
 
 import { NETWORKS, FAUCET_ENDPOINTS, DEFAULT_CONFIG, WALLET_PROVIDERS, STORAGE_KEYS } from './config.js';
 import { generateWalletPDF, generateQRCode, generatePrintableHTML, downloadBlob, generateBackupData } from './export-utils.js';
+import { showSeedModal, type SeedModalOptions } from './seed-modal.js';
 
 /**
  * Default browser storage adapter
@@ -398,6 +399,35 @@ export class MagicWallet {
         } catch (error) {
             console.error('❌ Failed to generate QR code:', error);
             throw new Error(`Failed to generate QR code: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * 🔑 Show seed phrase in a secure modal UI
+     * Simple, clean modal with copy and download options
+     */
+    async showSeedPhrase(options: SeedModalOptions = {}): Promise<void> {
+        if (!this.currentWallet) {
+            throw new Error('No wallet to show seed phrase for');
+        }
+
+        try {
+            await showSeedModal({
+                address: this.currentWallet.address,
+                mnemonic: this.currentWallet.mnemonic,
+                network: this.config.network,
+                createdAt: this.currentWallet.createdAt
+            }, {
+                showCopy: true,
+                showDownloadTxt: true,
+                showDownloadPdf: false, // Keep it simple
+                ...options
+            });
+
+            this.emitEvent('seed_displayed', { method: 'modal' });
+        } catch (error) {
+            console.error('❌ Failed to show seed phrase modal:', error);
+            throw new Error(`Failed to show seed phrase: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 

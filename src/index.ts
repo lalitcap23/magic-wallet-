@@ -1,6 +1,9 @@
 // Main SDK exports
 export { MagicWallet } from './MagicWallet.js';
 
+// UI Components
+export { showSeedModal, type SeedModalOptions, type SeedModalData } from './seed-modal.js';
+
 // Types and interfaces
 export type {
     MagicWalletConfig,
@@ -12,7 +15,8 @@ export type {
     WalletProvider,
     WalletEvent,
     EventCallback,
-    StorageAdapter
+    StorageAdapter,
+    PDFExportOptions
 } from './types.js';
 
 // Utility functions for advanced usage
