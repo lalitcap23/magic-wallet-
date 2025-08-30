@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Wallet SDK - Real Seed Modal Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+        }
+
+        .demo-section {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .wallet-info {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            background: #edf2f7;
+            padding: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin: 8px 0;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .status.success {
+            background: #f0fff4;
+            border: 1px solid #68d391;
+            color: #22543d;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #742a2a;
+        }
+
+        .status.info {
+            background: #ebf8ff;
+            border: 1px solid #63b3ed;
+            color: #2c5282;
+        }
+
+        .log {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪄 Magic Wallet SDK - Real Seed Modal Test</h1>
+        
+        <div class="status info">
+            <strong>🧪 Live SDK Test:</strong> This page uses the actual Magic Wallet SDK to create real wallets and display the seed phrase modal!
+        </div>
+
+        <div class="demo-section">
+            <h3>📱 Wallet Operations</h3>
+            <button id="createWallet" class="button">Create Real Wallet</button>
+            <button id="showSeed" class="button" disabled>🔑 Show Seed Phrase Modal</button>
+            <button id="fundWallet" class="button" disabled>💰 Fund from Faucet</button>
+            
+            <div id="walletInfo" class="wallet-info" style="display: none;">
+                <h4>✅ Created Wallet</h4>
+                <div><strong>Address:</strong></div>
+                <div id="walletAddress" class="wallet-address"></div>
+                <div><strong>Network:</strong> Testnet</div>
+                <div><strong>Status:</strong> <span id="walletStatus">Active</span></div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Test the Seed Modal Features</h3>
+            <ul>
+                <li><strong>📋 Copy to Clipboard:</strong> Click copy and paste somewhere to test</li>
+                <li><strong>📄 Download as TXT:</strong> Downloads real backup file with wallet info</li>
+                <li><strong>🛡️ Security Warnings:</strong> Built-in user education</li>
+                <li><strong>🔐 Clean Display:</strong> Professional 12-word grid layout</li>
+                <li><strong>⌨️ ESC to Close:</strong> Try pressing escape key</li>
+                <li><strong>📱 Mobile Ready:</strong> Test on your phone!</li>
+            </ul>
+        </div>
+
+        <div id="log" class="log">
+            <div>🔄 Loading Magic Wallet SDK...</div>
+        </div>
+
+        <div class="status info">
+            <strong>💡 Real SDK Features:</strong> This creates actual Stacks testnet wallets, funds them from the faucet, 
+            and shows the real seed phrase modal with working copy/download functionality!
+        </div>
+    </div>
+
+    <script type="module">
+        import { MagicWallet } from '../dist/index.mjs';
+
+        let magicWallet = null;
+        let currentWallet = null;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `<strong>${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</strong> ${message}`;
+            
+            // Insert after the title
+            const container = document.querySelector('.container');
+            const title = container.querySelector('h1');
+            title.insertAdjacentElement('afterend', statusDiv);
+            
+            // Remove after 5 seconds
+            setTimeout(() => statusDiv.remove(), 5000);
+        }
+
+        // Initialize SDK
+        try {
+            magicWallet = new MagicWallet({
+                network: 'testnet',
+                autoFund: false, // We'll fund manually to show the process
+                persistSession: true
+            });
+            log('✅ Magic Wallet SDK initialized successfully');
+        } catch (error) {
+            log('❌ SDK initialization failed: ' + error.message);
+            showStatus('SDK initialization failed: ' + error.message, 'error');
+        }
+
+        // Create wallet
+        document.getElementById('createWallet').addEventListener('click', async () => {
+            if (!magicWallet) {
+                showStatus('SDK not initialized', 'error');
+                return;
+            }
+
+            try {
+                log('🔄 Creating real Stacks testnet wallet...');
+                document.getElementById('createWallet').disabled = true;
+                
+                currentWallet = await magicWallet.createTemporaryWallet();
+                
+                document.getElementById('walletAddress').textContent = currentWallet.address;
+                document.getElementById('walletInfo').style.display = 'block';
+                document.getElementById('showSeed').disabled = false;
+                document.getElementById('fundWallet').disabled = false;
+                
+                log('✅ Real wallet created successfully!');
+                log(`Address: ${currentWallet.address}`);
+                showStatus('Wallet created successfully! You can now view the seed phrase.', 'success');
+                
+            } catch (error) {
+                log('❌ Wallet creation failed: ' + error.message);
+                showStatus('Wallet creation failed: ' + error.message, 'error');
+                document.getElementById('createWallet').disabled = false;
+            }
+        });
+
+        // Show seed phrase modal - THE MAIN FEATURE!
+        document.getElementById('showSeed').addEventListener('click', async () => {
+            if (!magicWallet || !currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            try {
+                log('🔑 Opening real seed phrase modal...');
+                
+                // This is the actual SDK method we built!
+                await magicWallet.showSeedPhrase({
+                    title: '🔑 Your Wallet Backup',
+                    showCopy: true,
+                    showDownloadTxt: true,
+                    showDownloadPdf: false
+                });
+                
+                log('✅ Seed phrase modal shown successfully');
+                showStatus('Seed phrase modal opened! Test the copy and download features.', 'success');
+                
+            } catch (error) {
+                log('❌ Failed to show seed modal: ' + error.message);
+                showStatus('Failed to show seed modal: ' + error.message, 'error');
+            }
+        });
+
+        // Fund wallet
+        document.getElementById('fundWallet').addEventListener('click', async () => {
+            if (!magicWallet || !currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            try {
+                log('💰 Requesting funds from Stacks testnet faucet...');
+                document.getElementById('fundWallet').disabled = true;
+                
+                const result = await magicWallet.requestFaucetFunds();
+                
+                if (result.success) {
+                    log('✅ Funding successful!');
+                    log(`Transaction ID: ${result.txid}`);
+                    document.getElementById('walletStatus').textContent = 'Funded';
+                    showStatus('Wallet funded successfully from testnet faucet!', 'success');
+                } else {
+                    log('⚠️ Funding failed: ' + result.message);
+                    showStatus('Funding failed: ' + result.message, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Funding error: ' + error.message);
+                showStatus('Funding error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('fundWallet').disabled = false;
+            }
+        });
+
+        log('🪄 Ready to test the Magic Wallet SDK!');
+        log('Click "Create Real Wallet" to start testing...');
+    </script>
+</body>
+</html>
