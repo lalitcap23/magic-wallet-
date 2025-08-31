@@ -2,7 +2,7 @@
 
 **One-click wallets for the Stacks blockchain** - Instant onboarding with upgrade paths to permanent wallets.
 
-Perfect for hackathons, demos, gaming DApps, and any application that needs **instant user onboarding** without the friction of wallet installation.
+Perfect for explore the any dapp without the friction at all .
 
 ## ✨ Features
 
