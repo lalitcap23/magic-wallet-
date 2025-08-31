@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🪄 Magic Wallet Auto-Connect Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .wallet-info {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .progress {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .success {
+            color: #2ecc71;
+        }
+
+        .warning {
+            color: #f39c12;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
+
+        .info {
+            color: #3498db;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪄 Magic Wallet Auto-Connect Demo</h1>
+            <p>Experience instant wallet onboarding with zero friction!</p>
+        </div>
+
+        <div class="demo-section">
+            <h3>🚀 One-Click Connect</h3>
+            <p>Perfect for new users - creates wallet, funds it, and connects instantly!</p>
+            <button id="oneClickBtn">🪄 One-Click Connect</button>
+            <div id="oneClickProgress"></div>
+            <div id="oneClickResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>⚡ Quick Connect</h3>
+            <p>Smart reconnection for returning users - uses existing wallet if available!</p>
+            <button id="quickConnectBtn">⚡ Quick Connect</button>
+            <div id="quickConnectResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔌 Wallet Provider</h3>
+            <p>Standard wallet interface compatible with existing dApp integrations!</p>
+            <button id="getProviderBtn">🔌 Get Wallet Provider</button>
+            <button id="providerConnectBtn" disabled>🔗 Provider Connect</button>
+            <div id="providerResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>💸 Send Test Transaction</h3>
+            <p>Try sending a small amount to test the wallet functionality!</p>
+            <button id="sendTxBtn" disabled>💸 Send 0.001 STX</button>
+            <div id="txResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>📱 Upgrade to Permanent Wallet</h3>
+            <p>Export your temporary wallet to a permanent one!</p>
+            <button id="showSeedBtn" disabled>📱 Show Seed Phrase</button>
+            <button id="exportPdfBtn" disabled>📄 Export PDF Backup</button>
+            <div id="upgradeResult"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { MagicWallet } from './dist/index.mjs';
+
+        let magicWallet = null;
+        let currentProvider = null;
+
+        // Initialize wallet
+        function initWallet() {
+            magicWallet = new MagicWallet({
+                network: 'testnet',
+                autoFund: true,
+                persistSession: true
+            });
+
+            // Set up event listeners
+            magicWallet.on('dapp_connected', (event) => {
+                console.log('🎉 dApp connected:', event.data);
+            });
+
+            magicWallet.on('transaction_broadcast', (event) => {
+                console.log('📡 Transaction broadcast:', event.data);
+            });
+        }
+
+        // One-click connect
+        document.getElementById('oneClickBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('oneClickBtn');
+            const progressDiv = document.getElementById('oneClickProgress');
+            const resultDiv = document.getElementById('oneClickResult');
+
+            btn.disabled = true;
+            btn.textContent = '🔄 Connecting...';
+            progressDiv.innerHTML = '';
+            resultDiv.innerHTML = '';
+
+            try {
+                initWallet();
+
+                const result = await magicWallet.oneClickConnect({
+                    appName: 'Magic Wallet Demo',
+                    onProgress: (step, progress) => {
+                        progressDiv.innerHTML = `<div class="progress info">📊 ${progress}% - ${step}</div>`;
+                    },
+                    autoShowSeed: false
+                });
+
+                resultDiv.innerHTML = `
+                    <div class="wallet-info success">
+                        ✅ One-click connection successful!<br>
+                        📍 Address: ${result.wallet.address}<br>
+                        💰 Funded: ${result.funded}<br>
+                        🎉 Ready: ${result.ready}<br>
+                        🌐 Network: ${result.connection.network}
+                    </div>
+                `;
+
+                // Enable other buttons
+                document.getElementById('getProviderBtn').disabled = false;
+                document.getElementById('sendTxBtn').disabled = false;
+                document.getElementById('showSeedBtn').disabled = false;
+                document.getElementById('exportPdfBtn').disabled = false;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="wallet-info error">❌ Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🪄 One-Click Connect';
+            }
+        });
+
+        // Quick connect
+        document.getElementById('quickConnectBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('quickConnectBtn');
+            const resultDiv = document.getElementById('quickConnectResult');
+
+            btn.disabled = true;
+            btn.textContent = '🔄 Connecting...';
+            resultDiv.innerHTML = '';
+
+            try {
+                if (!magicWallet) initWallet();
+
+                const result = await magicWallet.quickConnect('Magic Wallet Demo');
+
+                resultDiv.innerHTML = `
+                    <div class="wallet-info success">
+                        ⚡ Quick connect successful!<br>
+                        📍 Address: ${result.wallet.address}<br>
+                        🔄 Is Existing: ${result.isExisting}<br>
+                        🎉 Ready: ${!!result.connection}
+                    </div>
+                `;
+
+                // Enable other buttons
+                document.getElementById('getProviderBtn').disabled = false;
+                document.getElementById('sendTxBtn').disabled = false;
+                document.getElementById('showSeedBtn').disabled = false;
+                document.getElementById('exportPdfBtn').disabled = false;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="wallet-info error">❌ Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '⚡ Quick Connect';
+            }
+        });
+
+        // Get wallet provider
+        document.getElementById('getProviderBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('providerResult');
+
+            if (!magicWallet) {
+                resultDiv.innerHTML = `<div class="wallet-info warning">⚠️ Please connect wallet first!</div>`;
+                return;
+            }
+
+            try {
+                currentProvider = magicWallet.getWalletProvider();
+
+                resultDiv.innerHTML = `
+                    <div class="wallet-info info">
+                        🔌 Wallet Provider Interface:<br>
+                        🔗 Connected: ${currentProvider.isConnected}<br>
+                        👤 Account: ${currentProvider.account}<br>
+                        🌐 Network: ${currentProvider.network}
+                    </div>
+                `;
+
+                document.getElementById('providerConnectBtn').disabled = false;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="wallet-info error">❌ Error: ${error.message}</div>`;
+            }
+        });
+
+        // Provider connect
+        document.getElementById('providerConnectBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('providerConnectBtn');
+            const resultDiv = document.getElementById('providerResult');
+
+            btn.disabled = true;
+            btn.textContent = '🔄 Connecting...';
+
+            try {
+                const address = await currentProvider.connect();
+
+                resultDiv.innerHTML = `
+                    <div class="wallet-info success">
+                        🔗 Provider connect successful!<br>
+                        📍 Connected Address: ${address}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="wallet-info error">❌ Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔗 Provider Connect';
+            }
+        });
+
+        // Send test transaction
+        document.getElementById('sendTxBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('sendTxBtn');
+            const resultDiv = document.getElementById('txResult');
+
+            btn.disabled = true;
+            btn.textContent = '🔄 Sending...';
+            resultDiv.innerHTML = '';
+
+            try {
+                const txid = await magicWallet.sendSTX(
+                    'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+                    0.001,
+                    { memo: 'Magic Wallet Demo Transaction' }
+                );
+
+                resultDiv.innerHTML = `
+                    <div class="wallet-info success">
+                        💸 Transaction sent successfully!<br>
+                        📋 Transaction ID: ${txid}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="wallet-info error">❌ Transaction failed: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💸 Send 0.001 STX';
+            }
+        });
+
+        // Show seed phrase
+        document.getElementById('showSeedBtn').addEventListener('click', async () => {
+            try {
+                magicWallet.showSeedPhrase({
+                    title: '🔑 Your Wallet Backup',
+                    subtitle: 'Save this seed phrase to upgrade to a permanent wallet!',
+                    showCopy: true,
+                    showDownloadTxt: true
+                });
+
+                document.getElementById('upgradeResult').innerHTML = `
+                    <div class="wallet-info info">
+                        📱 Seed phrase modal opened! Save your backup to upgrade to a permanent wallet.
+                    </div>
+                `;
+
+            } catch (error) {
+                document.getElementById('upgradeResult').innerHTML = `
+                    <div class="wallet-info error">❌ Error: ${error.message}</div>
+                `;
+            }
+        });
+
+        // Export PDF backup
+        document.getElementById('exportPdfBtn').addEventListener('click', async () => {
+            try {
+                const pdfBlob = magicWallet.exportWallet('pdf', {
+                    includeQR: true,
+                    filename: 'magic-wallet-backup.pdf'
+                });
+
+                document.getElementById('upgradeResult').innerHTML = `
+                    <div class="wallet-info success">
+                        📄 PDF backup downloaded! Check your downloads folder.
+                    </div>
+                `;
+
+            } catch (error) {
+                document.getElementById('upgradeResult').innerHTML = `
+                    <div class="wallet-info error">❌ Error: ${error.message}</div>
+                `;
+            }
+        });
+
+        // Initialize on page load
+        console.log('🪄 Magic Wallet Auto-Connect Demo loaded!');
+        console.log('Click the buttons above to test the auto-connect features.');
+    </script>
+</body>
+
+</html>

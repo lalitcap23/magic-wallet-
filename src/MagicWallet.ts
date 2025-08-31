@@ -568,16 +568,16 @@ export class MagicWallet {
             // Step 1: Create wallet
             onProgress?.('Creating wallet...', 20);
             const wallet = await this.createTemporaryWallet();
-            
+
             onProgress?.('Wallet created!', 40);
-            
+
             // Step 2: Fund wallet (if not mainnet)
             let funded = false;
             if (this.config.network !== 'mainnet') {
                 onProgress?.('Requesting testnet funds...', 60);
                 const faucetResult = await this.requestFaucetFunds();
                 funded = faucetResult.success;
-                
+
                 if (funded) {
                     onProgress?.('Wallet funded!', 80);
                 } else {
@@ -587,7 +587,7 @@ export class MagicWallet {
 
             // Step 3: Setup dApp connection
             onProgress?.('Connecting to dApp...', 90);
-            
+
             // Emit connection event for dApp integration
             this.emitEvent('dapp_connected', {
                 appName,
@@ -635,7 +635,7 @@ export class MagicWallet {
         // Try to restore existing session first
         if (this.config.persistSession) {
             await this.restoreSession();
-            
+
             if (this.currentWallet && this.connection) {
                 this.emitEvent('dapp_reconnected', {
                     appName,
@@ -676,7 +676,7 @@ export class MagicWallet {
             isConnected: !!this.currentWallet,
             account: this.currentWallet?.address || null,
             network: this.config.network,
-            
+
             connect: async () => {
                 if (!this.currentWallet) {
                     const result = await this.oneClickConnect();
@@ -684,29 +684,29 @@ export class MagicWallet {
                 }
                 return this.currentWallet.address;
             },
-            
+
             disconnect: async () => {
                 await this.disconnect();
             },
-            
+
             sendTransaction: async (txOptions: any) => {
                 if (!this.currentWallet) {
                     throw new Error('No wallet connected');
                 }
-                
+
                 // Handle different transaction types
                 if (txOptions.type === 'STX') {
                     return await this.sendSTX(txOptions.recipient, txOptions.amount, txOptions);
                 }
-                
+
                 throw new Error('Unsupported transaction type');
             },
-            
+
             signMessage: async (message: string) => {
                 if (!this.currentWallet) {
                     throw new Error('No wallet connected');
                 }
-                
+
                 // Simple message signing (would need proper implementation for production)
                 return `signed_${message}_with_${this.currentWallet.address}`;
             }

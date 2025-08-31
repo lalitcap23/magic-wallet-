@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -230,7 +231,7 @@
             .content {
                 padding: 20px;
             }
-            
+
             .one-click-btn {
                 padding: 15px 25px;
                 font-size: 1.1em;
@@ -238,6 +239,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -304,21 +306,21 @@
                             <p>Transfer tokens to other addresses</p>
                             <button id="sendDemo" class="button">Try Sending</button>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-icon">🔑</div>
                             <h4>View Seed Phrase</h4>
                             <p>Backup your wallet securely</p>
                             <button id="showSeedDemo" class="button">Show Seed</button>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-icon">📊</div>
                             <h4>Check Balance</h4>
                             <p>View your current STX balance</p>
                             <button id="checkBalanceDemo" class="button">Refresh Balance</button>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-icon">📤</div>
                             <h4>Export Wallet</h4>
@@ -344,7 +346,8 @@
             </div>
 
             <div class="status warning">
-                <strong>💡 For Developers:</strong> This demonstrates how easy it is to integrate Magic Wallet SDK into your Stacks dApp. Users get instant access without complex wallet setup!
+                <strong>💡 For Developers:</strong> This demonstrates how easy it is to integrate Magic Wallet SDK into
+                your Stacks dApp. Users get instant access without complex wallet setup!
             </div>
         </div>
     </div>
@@ -371,7 +374,7 @@
             const progressBar = document.getElementById('progressBar');
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
-            
+
             progressBar.style.display = 'block';
             progressFill.style.width = progress + '%';
             progressText.textContent = text;
@@ -395,7 +398,7 @@
 
         async function updateBalance() {
             if (!magicWallet || !currentWallet) return;
-            
+
             try {
                 const balance = await magicWallet.getBalance();
                 document.getElementById('walletBalance').textContent = balance.toFixed(6);
@@ -448,22 +451,22 @@
                 });
 
                 currentWallet = result.wallet;
-                
+
                 // Update UI
                 document.getElementById('walletAddress').textContent = currentWallet.address;
                 document.getElementById('walletNetwork').textContent = result.connection.network;
                 document.getElementById('walletStatus').textContent = result.funded ? 'Connected & Funded' : 'Connected';
-                
+
                 hideProgress();
                 showConnectedState();
-                
+
                 log('✅ One-click connection successful!');
                 log(`📍 Wallet: ${currentWallet.address}`);
                 log(`💰 Funded: ${result.funded ? 'Yes' : 'No'}`);
-                
+
                 // Update balance
                 await updateBalance();
-                
+
             } catch (error) {
                 log('❌ One-click connection failed: ' + error.message);
                 updateConnectionStatus('Connection failed');
@@ -478,10 +481,10 @@
 
             try {
                 log('⚡ Attempting quick connect...');
-                
+
                 const result = await magicWallet.quickConnect('Demo Stacks dApp');
                 currentWallet = result.wallet;
-                
+
                 if (result.isExisting) {
                     log('✅ Restored existing session');
                     updateConnectionStatus('Reconnected');
@@ -489,14 +492,14 @@
                     log('✅ Created new session');
                     updateConnectionStatus('Connected');
                 }
-                
+
                 // Update UI
                 document.getElementById('walletAddress').textContent = currentWallet.address;
                 document.getElementById('walletStatus').textContent = 'Connected';
-                
+
                 showConnectedState();
                 await updateBalance();
-                
+
             } catch (error) {
                 log('❌ Quick connect failed: ' + error.message);
             }
@@ -518,7 +521,7 @@
         document.getElementById('sendDemo').addEventListener('click', () => {
             const recipient = prompt('Enter recipient address (or use a demo address):') || 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
             const amount = parseFloat(prompt('Enter amount in STX:') || '0.001');
-            
+
             if (recipient && amount) {
                 magicWallet.sendSTX(recipient, amount, { memo: 'Demo transaction from Magic Wallet SDK' })
                     .then(txid => {
@@ -557,4 +560,5 @@
         log('🎯 Demo dApp ready! Click "Connect Wallet & Start Exploring" to begin');
     </script>
 </body>
+
 </html>
