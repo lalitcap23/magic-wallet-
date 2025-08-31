@@ -193,6 +193,11 @@ export class MagicWallet {
                     const result = await response.json() as { txId?: string; success?: boolean; error?: string };
 
                     if (result.success !== false && result.txId) {
+                        this.emitEvent('wallet_funded', {
+                            address: targetAddress,
+                            txid: result.txId
+                        });
+
                         return {
                             success: true,
                             txid: result.txId,
@@ -263,7 +268,7 @@ export class MagicWallet {
                 throw new Error(broadcastResponse.reason || 'Transaction failed');
             }
 
-            this.emitEvent('transaction_broadcast', {
+            this.emitEvent('transactionSent', {
                 txid: broadcastResponse.txid,
                 recipient,
                 amount
@@ -506,6 +511,206 @@ export class MagicWallet {
                 listeners.splice(index, 1);
             }
         }
+    }
+
+    /**
+     * 💰 Get wallet STX balance
+     */
+    async getBalance(address?: string): Promise<number> {
+        const walletAddress = address || this.currentWallet?.address;
+
+        if (!walletAddress) {
+            throw new Error('No wallet address available');
+        }
+
+        try {
+            const network = NETWORKS[this.config.network];
+            const url = `${network.coreApiUrl}/extended/v1/address/${walletAddress}/stx`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch balance: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const balanceInMicroStx = parseInt(data.balance, 10);
+            return microStxToStx(balanceInMicroStx);
+
+        } catch (error) {
+            console.error('❌ Failed to get balance:', error);
+            throw new Error(`Failed to get balance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * 🚀 ONE-CLICK MAGIC: Create, fund, and connect wallet instantly for dApps
+     * This is the main feature for dApp integration - everything happens automatically
+     */
+    async oneClickConnect(options: {
+        appName?: string;
+        fundingAmount?: number;
+        onProgress?: (step: string, progress: number) => void;
+        autoShowSeed?: boolean;
+    } = {}): Promise<{
+        wallet: TemporaryWallet;
+        connection: WalletConnection;
+        funded: boolean;
+        ready: boolean;
+    }> {
+        const {
+            appName = 'Stacks dApp',
+            fundingAmount = 1000000, // 1 STX default
+            onProgress,
+            autoShowSeed = false
+        } = options;
+
+        try {
+            // Step 1: Create wallet
+            onProgress?.('Creating wallet...', 20);
+            const wallet = await this.createTemporaryWallet();
+            
+            onProgress?.('Wallet created!', 40);
+            
+            // Step 2: Fund wallet (if not mainnet)
+            let funded = false;
+            if (this.config.network !== 'mainnet') {
+                onProgress?.('Requesting testnet funds...', 60);
+                const faucetResult = await this.requestFaucetFunds();
+                funded = faucetResult.success;
+                
+                if (funded) {
+                    onProgress?.('Wallet funded!', 80);
+                } else {
+                    onProgress?.('Funding failed, but wallet is ready', 80);
+                }
+            }
+
+            // Step 3: Setup dApp connection
+            onProgress?.('Connecting to dApp...', 90);
+            
+            // Emit connection event for dApp integration
+            this.emitEvent('dapp_connected', {
+                appName,
+                wallet: wallet.address,
+                network: this.config.network,
+                funded,
+                timestamp: Date.now()
+            });
+
+            // Step 4: Complete
+            onProgress?.('Ready to explore!', 100);
+
+            // Optionally show seed phrase for backup
+            if (autoShowSeed) {
+                setTimeout(() => {
+                    this.showSeedPhrase({
+                        title: `🎉 Welcome to ${appName}! Your wallet is ready!`,
+                        showCopy: true,
+                        showDownloadTxt: true
+                    });
+                }, 1000);
+            }
+
+            return {
+                wallet,
+                connection: this.connection!,
+                funded,
+                ready: true
+            };
+
+        } catch (error) {
+            onProgress?.('Failed to setup wallet', 0);
+            throw new Error(`One-click connect failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * 🎯 Quick connect for existing users (restores previous session)
+     */
+    async quickConnect(appName: string = 'Stacks dApp'): Promise<{
+        wallet: TemporaryWallet;
+        connection: WalletConnection;
+        isExisting: boolean;
+    }> {
+        // Try to restore existing session first
+        if (this.config.persistSession) {
+            await this.restoreSession();
+            
+            if (this.currentWallet && this.connection) {
+                this.emitEvent('dapp_reconnected', {
+                    appName,
+                    wallet: this.currentWallet.address,
+                    network: this.config.network
+                });
+
+                return {
+                    wallet: this.currentWallet,
+                    connection: this.connection,
+                    isExisting: true
+                };
+            }
+        }
+
+        // If no existing session, create new one
+        const result = await this.oneClickConnect({ appName });
+        return {
+            wallet: result.wallet,
+            connection: result.connection,
+            isExisting: false
+        };
+    }
+
+    /**
+     * 🌐 Get wallet provider for dApp integration (mimics standard wallet interface)
+     */
+    getWalletProvider(): {
+        isConnected: boolean;
+        account: string | null;
+        network: string;
+        connect: () => Promise<string>;
+        disconnect: () => Promise<void>;
+        sendTransaction: (txOptions: any) => Promise<string>;
+        signMessage: (message: string) => Promise<string>;
+    } {
+        return {
+            isConnected: !!this.currentWallet,
+            account: this.currentWallet?.address || null,
+            network: this.config.network,
+            
+            connect: async () => {
+                if (!this.currentWallet) {
+                    const result = await this.oneClickConnect();
+                    return result.wallet.address;
+                }
+                return this.currentWallet.address;
+            },
+            
+            disconnect: async () => {
+                await this.disconnect();
+            },
+            
+            sendTransaction: async (txOptions: any) => {
+                if (!this.currentWallet) {
+                    throw new Error('No wallet connected');
+                }
+                
+                // Handle different transaction types
+                if (txOptions.type === 'STX') {
+                    return await this.sendSTX(txOptions.recipient, txOptions.amount, txOptions);
+                }
+                
+                throw new Error('Unsupported transaction type');
+            },
+            
+            signMessage: async (message: string) => {
+                if (!this.currentWallet) {
+                    throw new Error('No wallet connected');
+                }
+                
+                // Simple message signing (would need proper implementation for production)
+                return `signed_${message}_with_${this.currentWallet.address}`;
+            }
+        };
     }
 
     // Private methods

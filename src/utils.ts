@@ -54,9 +54,25 @@ export function generateTemporaryWallet(): TemporaryWallet {
  */
 export function restoreWalletFromMnemonic(mnemonic: string): TemporaryWallet {
     try {
-        // In a real implementation, this would derive keys from the mnemonic
-        // For now, we'll generate new keys
-        const privateKey = makeRandomPrivKey();
+        // Validate mnemonic format
+        const words = mnemonic.trim().split(/\s+/);
+        if (words.length !== 12) {
+            throw new Error('Mnemonic must be 12 words');
+        }
+
+        // For simplicity, we'll derive a deterministic private key from the mnemonic
+        // In production, you should use proper BIP39/BIP44 derivation
+        const hash = mnemonic.split(' ').reduce((acc, word, index) => {
+            return acc + word.charCodeAt(0) * (index + 1);
+        }, 0);
+
+        // Create a deterministic private key based on the mnemonic
+        const seed = new Uint8Array(32);
+        for (let i = 0; i < 32; i++) {
+            seed[i] = (hash + i) % 256;
+        }
+
+        const privateKey = createStacksPrivateKey(Buffer.from(seed).toString('hex'));
         const publicKey = getPublicKey(privateKey);
         const address = publicKeyToAddress(AddressVersion.TestnetSingleSig, publicKey);
 
