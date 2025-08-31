@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Wallet SDK - Real Seed Modal Test</title>
+    <title>Magic Wallet SDK - Complete Integration Demo</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -115,38 +116,76 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>🪄 Magic Wallet SDK - Real Seed Modal Test</h1>
-        
+        <h1>🪄 Magic Wallet SDK - Complete Integration Demo</h1>
+
         <div class="status info">
-            <strong>🧪 Live SDK Test:</strong> This page uses the actual Magic Wallet SDK to create real wallets and display the seed phrase modal!
+            <strong>🎯 Complete SDK Demo:</strong> This page demonstrates comprehensive Magic Wallet SDK integration
+            with all core features: wallet creation, restoration, transactions, exports, QR codes, and the seed phrase
+            modal!
         </div>
 
         <div class="demo-section">
             <h3>📱 Wallet Operations</h3>
             <button id="createWallet" class="button">Create Real Wallet</button>
+            <button id="restoreWallet" class="button">🔄 Restore from Mnemonic</button>
             <button id="showSeed" class="button" disabled>🔑 Show Seed Phrase Modal</button>
             <button id="fundWallet" class="button" disabled>💰 Fund from Faucet</button>
-            
+
             <div id="walletInfo" class="wallet-info" style="display: none;">
-                <h4>✅ Created Wallet</h4>
+                <h4>✅ Active Wallet</h4>
                 <div><strong>Address:</strong></div>
                 <div id="walletAddress" class="wallet-address"></div>
+                <div><strong>Balance:</strong> <span id="walletBalance">Loading...</span> STX</div>
                 <div><strong>Network:</strong> Testnet</div>
                 <div><strong>Status:</strong> <span id="walletStatus">Active</span></div>
             </div>
         </div>
 
         <div class="demo-section">
-            <h3>🎯 Test the Seed Modal Features</h3>
+            <h3>💰 Transaction Features</h3>
+            <div style="margin-bottom: 15px;">
+                <label for="recipientAddress" style="display: block; margin-bottom: 5px;">Recipient Address:</label>
+                <input type="text" id="recipientAddress" placeholder="SP... (Stacks address)"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="amountStx" style="display: block; margin-bottom: 5px;">Amount (STX):</label>
+                <input type="number" id="amountStx" placeholder="0.001" step="0.001" min="0.001"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <button id="sendStx" class="button" disabled>📤 Send STX</button>
+            <button id="checkBalance" class="button" disabled>🔍 Check Balance</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>📤 Export Features</h3>
+            <button id="exportJson" class="button" disabled>📄 Export as JSON</button>
+            <button id="exportPdf" class="button" disabled>📋 Export as PDF</button>
+            <button id="generateQr" class="button" disabled>📱 Generate QR Code</button>
+            <button id="disconnect" class="button" disabled>🔌 Disconnect Wallet</button>
+
+            <div id="qrContainer" style="margin-top: 15px; text-align: center; display: none;">
+                <h4>📱 Wallet QR Code</h4>
+                <img id="qrImage" style="max-width: 200px; border: 1px solid #ddd; border-radius: 8px;">
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Comprehensive SDK Features Demo</h3>
             <ul>
-                <li><strong>📋 Copy to Clipboard:</strong> Click copy and paste somewhere to test</li>
-                <li><strong>📄 Download as TXT:</strong> Downloads real backup file with wallet info</li>
-                <li><strong>🛡️ Security Warnings:</strong> Built-in user education</li>
-                <li><strong>🔐 Clean Display:</strong> Professional 12-word grid layout</li>
-                <li><strong>⌨️ ESC to Close:</strong> Try pressing escape key</li>
-                <li><strong>📱 Mobile Ready:</strong> Test on your phone!</li>
+                <li><strong>� Wallet Creation:</strong> Generate real Stacks testnet wallets</li>
+                <li><strong>🔄 Wallet Restoration:</strong> Restore from 12-word mnemonic phrases</li>
+                <li><strong>� Auto-Funding:</strong> Request STX from testnet faucet</li>
+                <li><strong>📤 Transactions:</strong> Send STX to any Stacks address</li>
+                <li><strong>💾 Export Options:</strong> JSON, PDF backups with QR codes</li>
+                <li><strong>� Seed Modal:</strong> Secure seed phrase display with copy/download</li>
+                <li><strong>⚡ Event System:</strong> Real-time wallet event notifications</li>
+                <li><strong>� Session Persistence:</strong> Automatic wallet state management</li>
+                <li><strong>📱 QR Codes:</strong> Generate shareable wallet QR codes</li>
+                <li><strong>�️ Security:</strong> Built-in address validation and error handling</li>
             </ul>
         </div>
 
@@ -155,13 +194,14 @@
         </div>
 
         <div class="status info">
-            <strong>💡 Real SDK Features:</strong> This creates actual Stacks testnet wallets, funds them from the faucet, 
-            and shows the real seed phrase modal with working copy/download functionality!
+            <strong>💡 Ready for Production:</strong> This demonstrates a complete Magic Wallet SDK integration ready
+            for production use. All features create real Stacks testnet wallets and transactions with proper error
+            handling, event management, and user feedback!
         </div>
     </div>
 
     <script type="module">
-        import { MagicWallet } from '../dist/index.mjs';
+        import { MagicWallet, isValidStacksAddress, stxToMicroStx } from '../dist/index.mjs';
 
         let magicWallet = null;
         let currentWallet = null;
@@ -177,14 +217,33 @@
             const statusDiv = document.createElement('div');
             statusDiv.className = `status ${type}`;
             statusDiv.innerHTML = `<strong>${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</strong> ${message}`;
-            
+
             // Insert after the title
             const container = document.querySelector('.container');
             const title = container.querySelector('h1');
             title.insertAdjacentElement('afterend', statusDiv);
-            
+
             // Remove after 5 seconds
             setTimeout(() => statusDiv.remove(), 5000);
+        }
+
+        function updateButtonStates(walletActive = false) {
+            const buttons = ['showSeed', 'fundWallet', 'sendStx', 'checkBalance', 'exportJson', 'exportPdf', 'generateQr', 'disconnect'];
+            buttons.forEach(id => {
+                document.getElementById(id).disabled = !walletActive;
+            });
+        }
+
+        async function updateBalance() {
+            if (!currentWallet) return;
+
+            try {
+                const balance = await magicWallet.getBalance();
+                document.getElementById('walletBalance').textContent = balance.toFixed(6);
+            } catch (error) {
+                document.getElementById('walletBalance').textContent = 'Error loading';
+                log('❌ Balance check failed: ' + error.message);
+            }
         }
 
         // Initialize SDK
@@ -194,7 +253,22 @@
                 autoFund: false, // We'll fund manually to show the process
                 persistSession: true
             });
-            log('✅ Magic Wallet SDK initialized successfully');
+
+            // Set up event listeners for wallet events
+            magicWallet.on('walletCreated', (wallet) => {
+                log('🎉 Wallet created event fired');
+            });
+
+            magicWallet.on('walletFunded', (data) => {
+                log('💰 Wallet funded event fired');
+                updateBalance();
+            });
+
+            magicWallet.on('transactionSent', (txData) => {
+                log(`📤 Transaction sent: ${txData.txid}`);
+            });
+
+            log('✅ Magic Wallet SDK initialized successfully with event listeners');
         } catch (error) {
             log('❌ SDK initialization failed: ' + error.message);
             showStatus('SDK initialization failed: ' + error.message, 'error');
@@ -210,22 +284,57 @@
             try {
                 log('🔄 Creating real Stacks testnet wallet...');
                 document.getElementById('createWallet').disabled = true;
-                
+
                 currentWallet = await magicWallet.createTemporaryWallet();
-                
+
                 document.getElementById('walletAddress').textContent = currentWallet.address;
                 document.getElementById('walletInfo').style.display = 'block';
-                document.getElementById('showSeed').disabled = false;
-                document.getElementById('fundWallet').disabled = false;
-                
+                updateButtonStates(true);
+
                 log('✅ Real wallet created successfully!');
                 log(`Address: ${currentWallet.address}`);
-                showStatus('Wallet created successfully! You can now view the seed phrase.', 'success');
-                
+                log(`Mnemonic: ${currentWallet.mnemonic.split(' ').slice(0, 3).join(' ')}... (12 words total)`);
+
+                showStatus('Wallet created successfully! You can now use all SDK features.', 'success');
+
+                // Check initial balance
+                await updateBalance();
+
             } catch (error) {
                 log('❌ Wallet creation failed: ' + error.message);
                 showStatus('Wallet creation failed: ' + error.message, 'error');
                 document.getElementById('createWallet').disabled = false;
+            }
+        });
+
+        // Restore wallet from mnemonic
+        document.getElementById('restoreWallet').addEventListener('click', async () => {
+            if (!magicWallet) {
+                showStatus('SDK not initialized', 'error');
+                return;
+            }
+
+            const mnemonic = prompt('Enter 12-word mnemonic phrase:');
+            if (!mnemonic) return;
+
+            try {
+                log('🔄 Restoring wallet from mnemonic...');
+
+                currentWallet = await magicWallet.restoreFromMnemonic(mnemonic.trim());
+
+                document.getElementById('walletAddress').textContent = currentWallet.address;
+                document.getElementById('walletInfo').style.display = 'block';
+                updateButtonStates(true);
+
+                log('✅ Wallet restored successfully!');
+                log(`Address: ${currentWallet.address}`);
+
+                showStatus('Wallet restored successfully!', 'success');
+                await updateBalance();
+
+            } catch (error) {
+                log('❌ Wallet restoration failed: ' + error.message);
+                showStatus('Wallet restoration failed: ' + error.message, 'error');
             }
         });
 
@@ -238,7 +347,7 @@
 
             try {
                 log('🔑 Opening real seed phrase modal...');
-                
+
                 // This is the actual SDK method we built!
                 await magicWallet.showSeedPhrase({
                     title: '🔑 Your Wallet Backup',
@@ -246,10 +355,10 @@
                     showDownloadTxt: true,
                     showDownloadPdf: false
                 });
-                
+
                 log('✅ Seed phrase modal shown successfully');
                 showStatus('Seed phrase modal opened! Test the copy and download features.', 'success');
-                
+
             } catch (error) {
                 log('❌ Failed to show seed modal: ' + error.message);
                 showStatus('Failed to show seed modal: ' + error.message, 'error');
@@ -266,19 +375,22 @@
             try {
                 log('💰 Requesting funds from Stacks testnet faucet...');
                 document.getElementById('fundWallet').disabled = true;
-                
+
                 const result = await magicWallet.requestFaucetFunds();
-                
+
                 if (result.success) {
                     log('✅ Funding successful!');
                     log(`Transaction ID: ${result.txid}`);
                     document.getElementById('walletStatus').textContent = 'Funded';
                     showStatus('Wallet funded successfully from testnet faucet!', 'success');
+
+                    // Wait a bit then update balance
+                    setTimeout(updateBalance, 3000);
                 } else {
                     log('⚠️ Funding failed: ' + result.message);
                     showStatus('Funding failed: ' + result.message, 'error');
                 }
-                
+
             } catch (error) {
                 log('❌ Funding error: ' + error.message);
                 showStatus('Funding error: ' + error.message, 'error');
@@ -287,8 +399,173 @@
             }
         });
 
+        // Send STX transaction
+        document.getElementById('sendStx').addEventListener('click', async () => {
+            if (!magicWallet || !currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            const recipient = document.getElementById('recipientAddress').value.trim();
+            const amount = parseFloat(document.getElementById('amountStx').value);
+
+            if (!recipient || !amount) {
+                showStatus('Please enter recipient address and amount', 'error');
+                return;
+            }
+
+            if (!isValidStacksAddress(recipient)) {
+                showStatus('Invalid Stacks address', 'error');
+                return;
+            }
+
+            try {
+                log(`📤 Sending ${amount} STX to ${recipient}...`);
+                document.getElementById('sendStx').disabled = true;
+
+                const result = await magicWallet.sendSTX(recipient, amount, {
+                    memo: 'Test transaction from Magic Wallet SDK'
+                });
+
+                log('✅ Transaction sent successfully!');
+                log(`Transaction ID: ${result.txid}`);
+                showStatus(`Transaction sent! TXID: ${result.txid}`, 'success');
+
+                // Clear form and update balance
+                document.getElementById('recipientAddress').value = '';
+                document.getElementById('amountStx').value = '';
+                setTimeout(updateBalance, 5000);
+
+            } catch (error) {
+                log('❌ Transaction failed: ' + error.message);
+                showStatus('Transaction failed: ' + error.message, 'error');
+            } finally {
+                document.getElementById('sendStx').disabled = false;
+            }
+        });
+
+        // Check balance
+        document.getElementById('checkBalance').addEventListener('click', async () => {
+            if (!currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            log('🔍 Checking wallet balance...');
+            await updateBalance();
+            showStatus('Balance updated!', 'success');
+        });
+
+        // Export as JSON
+        document.getElementById('exportJson').addEventListener('click', async () => {
+            if (!magicWallet || !currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            try {
+                log('📄 Exporting wallet as JSON...');
+
+                const exportData = magicWallet.exportWallet();
+                const jsonString = JSON.stringify(exportData, null, 2);
+
+                // Create download
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `magic-wallet-${currentWallet.address.slice(0, 8)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                log('✅ JSON export complete');
+                showStatus('Wallet exported as JSON file!', 'success');
+
+            } catch (error) {
+                log('❌ JSON export failed: ' + error.message);
+                showStatus('JSON export failed: ' + error.message, 'error');
+            }
+        });
+
+        // Export as PDF
+        document.getElementById('exportPdf').addEventListener('click', async () => {
+            if (!magicWallet || !currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            try {
+                log('📋 Generating PDF backup...');
+
+                await magicWallet.exportWalletToPDF({
+                    filename: `magic-wallet-backup-${currentWallet.address.slice(0, 8)}.pdf`,
+                    includeQR: true,
+                    includeInstructions: true
+                });
+
+                log('✅ PDF export complete');
+                showStatus('Wallet backup PDF downloaded!', 'success');
+
+            } catch (error) {
+                log('❌ PDF export failed: ' + error.message);
+                showStatus('PDF export failed: ' + error.message, 'error');
+            }
+        });
+
+        // Generate QR code
+        document.getElementById('generateQr').addEventListener('click', async () => {
+            if (!magicWallet || !currentWallet) {
+                showStatus('No wallet available', 'error');
+                return;
+            }
+
+            try {
+                log('📱 Generating QR code...');
+
+                const qrDataUrl = await magicWallet.generateWalletQR();
+
+                document.getElementById('qrImage').src = qrDataUrl;
+                document.getElementById('qrContainer').style.display = 'block';
+
+                log('✅ QR code generated');
+                showStatus('QR code generated! Share to import wallet address.', 'success');
+
+            } catch (error) {
+                log('❌ QR generation failed: ' + error.message);
+                showStatus('QR generation failed: ' + error.message, 'error');
+            }
+        });
+
+        // Disconnect wallet
+        document.getElementById('disconnect').addEventListener('click', async () => {
+            if (!magicWallet) {
+                showStatus('No wallet to disconnect', 'error');
+                return;
+            }
+
+            try {
+                log('🔌 Disconnecting wallet...');
+
+                await magicWallet.disconnect();
+
+                currentWallet = null;
+                document.getElementById('walletInfo').style.display = 'none';
+                document.getElementById('qrContainer').style.display = 'none';
+                document.getElementById('createWallet').disabled = false;
+                updateButtonStates(false);
+
+                log('✅ Wallet disconnected');
+                showStatus('Wallet disconnected and session cleared!', 'success');
+
+            } catch (error) {
+                log('❌ Disconnect failed: ' + error.message);
+                showStatus('Disconnect failed: ' + error.message, 'error');
+            }
+        });
+
         log('🪄 Ready to test the Magic Wallet SDK!');
-        log('Click "Create Real Wallet" to start testing...');
+        log('Click "Create Real Wallet" to start testing all SDK features...');
     </script>
 </body>
+
 </html>

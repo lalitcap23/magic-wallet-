@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 One-Click dApp Demo - Magic Wallet SDK</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .demo-section {
+            background: #f8faff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .demo-section h3 {
+            margin: 0 0 20px 0;
+            color: #4a5568;
+            font-size: 1.4em;
+        }
+
+        .one-click-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 12px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .one-click-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .one-click-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 8px 5px;
+            transition: all 0.2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 15px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .wallet-info {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            background: #edf2f7;
+            padding: 12px;
+            border-radius: 6px;
+            word-break: break-all;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .dapp-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            color: #22543d;
+        }
+
+        .status.info {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            color: #2c5282;
+        }
+
+        .status.warning {
+            background: #fffbeb;
+            border: 2px solid #f6e05e;
+            color: #744210;
+        }
+
+        .log {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .connected-state {
+            display: none;
+        }
+
+        .connected-state.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .one-click-btn {
+                padding: 15px 25px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 One-Click dApp Integration</h1>
+            <p>Experience the Magic Wallet SDK - Create, Fund & Connect instantly!</p>
+        </div>
+
+        <div class="content">
+            <!-- Connection Status -->
+            <div class="status info">
+                <strong>🎯 Demo dApp Status:</strong> <span id="connectionStatus">Ready to connect</span>
+            </div>
+
+            <!-- One-Click Connect Section -->
+            <div class="demo-section" id="connectSection">
+                <h3>🪄 One-Click Magic Connection</h3>
+                <p>This simulates a real Stacks dApp integration. Click the button below to:</p>
+                <ul>
+                    <li>✨ Create a new Stacks wallet instantly</li>
+                    <li>💰 Auto-fund with testnet STX</li>
+                    <li>🔗 Connect to this demo dApp</li>
+                    <li>🎉 Start exploring immediately!</li>
+                </ul>
+
+                <button id="oneClickConnect" class="one-click-btn">
+                    🚀 Connect Wallet & Start Exploring
+                </button>
+
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText"></div>
+            </div>
+
+            <!-- Quick Connect for Returning Users -->
+            <div class="demo-section">
+                <h3>⚡ Quick Connect (Returning Users)</h3>
+                <p>If you've used this dApp before, quickly restore your previous session:</p>
+                <button id="quickConnect" class="button">⚡ Quick Connect</button>
+                <button id="clearSession" class="button">🗑️ Clear Session (Reset Demo)</button>
+            </div>
+
+            <!-- Connected State -->
+            <div class="connected-state" id="connectedState">
+                <div class="demo-section">
+                    <h3>🎉 Connected to Demo dApp!</h3>
+                    <div class="wallet-info" id="walletInfo">
+                        <h4>✅ Your Wallet is Ready</h4>
+                        <div><strong>Address:</strong></div>
+                        <div id="walletAddress" class="wallet-address"></div>
+                        <div><strong>Network:</strong> <span id="walletNetwork">Testnet</span></div>
+                        <div><strong>Balance:</strong> <span id="walletBalance">Loading...</span> STX</div>
+                        <div><strong>Status:</strong> <span id="walletStatus">Connected</span></div>
+                    </div>
+                </div>
+
+                <!-- dApp Features Demo -->
+                <div class="demo-section">
+                    <h3>🛠️ dApp Features Available</h3>
+                    <div class="dapp-features">
+                        <div class="feature-card">
+                            <div class="feature-icon">💸</div>
+                            <h4>Send STX</h4>
+                            <p>Transfer tokens to other addresses</p>
+                            <button id="sendDemo" class="button">Try Sending</button>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">🔑</div>
+                            <h4>View Seed Phrase</h4>
+                            <p>Backup your wallet securely</p>
+                            <button id="showSeedDemo" class="button">Show Seed</button>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h4>Check Balance</h4>
+                            <p>View your current STX balance</p>
+                            <button id="checkBalanceDemo" class="button">Refresh Balance</button>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">📤</div>
+                            <h4>Export Wallet</h4>
+                            <p>Download wallet backup</p>
+                            <button id="exportDemo" class="button">Export PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🔌 Disconnect</h3>
+                    <p>When you're done exploring the dApp:</p>
+                    <button id="disconnectWallet" class="button">🔌 Disconnect Wallet</button>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="demo-section">
+                <h3>📋 Activity Log</h3>
+                <div id="log" class="log">
+                    <div>🚀 Demo dApp ready for one-click connection...</div>
+                </div>
+            </div>
+
+            <div class="status warning">
+                <strong>💡 For Developers:</strong> This demonstrates how easy it is to integrate Magic Wallet SDK into your Stacks dApp. Users get instant access without complex wallet setup!
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { MagicWallet } from '../dist/index.mjs';
+
+        let magicWallet = null;
+        let currentWallet = null;
+        let isConnected = false;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateConnectionStatus(status) {
+            document.getElementById('connectionStatus').textContent = status;
+        }
+
+        function showProgress(text, progress) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressBar.style.display = 'block';
+            progressFill.style.width = progress + '%';
+            progressText.textContent = text;
+        }
+
+        function hideProgress() {
+            document.getElementById('progressBar').style.display = 'none';
+        }
+
+        function showConnectedState() {
+            document.getElementById('connectSection').style.display = 'none';
+            document.getElementById('connectedState').classList.add('active');
+            isConnected = true;
+        }
+
+        function hideConnectedState() {
+            document.getElementById('connectSection').style.display = 'block';
+            document.getElementById('connectedState').classList.remove('active');
+            isConnected = false;
+        }
+
+        async function updateBalance() {
+            if (!magicWallet || !currentWallet) return;
+            
+            try {
+                const balance = await magicWallet.getBalance();
+                document.getElementById('walletBalance').textContent = balance.toFixed(6);
+            } catch (error) {
+                document.getElementById('walletBalance').textContent = 'Error';
+                log('❌ Balance check failed: ' + error.message);
+            }
+        }
+
+        // Initialize SDK
+        try {
+            magicWallet = new MagicWallet({
+                network: 'testnet',
+                autoFund: true,  // Enable auto-funding for one-click experience
+                persistSession: true
+            });
+
+            // Set up event listeners
+            magicWallet.on('dapp_connected', (event) => {
+                log(`🎉 Connected to dApp: ${event.data.appName}`);
+                updateConnectionStatus('Connected to Demo dApp');
+            });
+
+            magicWallet.on('wallet_funded', (event) => {
+                log(`💰 Wallet funded: ${event.data.txid}`);
+                setTimeout(updateBalance, 3000); // Update balance after funding
+            });
+
+            log('✅ Magic Wallet SDK initialized for dApp integration');
+        } catch (error) {
+            log('❌ SDK initialization failed: ' + error.message);
+        }
+
+        // One-Click Connect
+        document.getElementById('oneClickConnect').addEventListener('click', async () => {
+            if (!magicWallet) {
+                log('❌ SDK not initialized');
+                return;
+            }
+
+            try {
+                log('🚀 Starting one-click connection...');
+                document.getElementById('oneClickConnect').disabled = true;
+                updateConnectionStatus('Connecting...');
+
+                const result = await magicWallet.oneClickConnect({
+                    appName: 'Demo Stacks dApp',
+                    onProgress: showProgress,
+                    autoShowSeed: false // Don't auto-show seed in demo
+                });
+
+                currentWallet = result.wallet;
+                
+                // Update UI
+                document.getElementById('walletAddress').textContent = currentWallet.address;
+                document.getElementById('walletNetwork').textContent = result.connection.network;
+                document.getElementById('walletStatus').textContent = result.funded ? 'Connected & Funded' : 'Connected';
+                
+                hideProgress();
+                showConnectedState();
+                
+                log('✅ One-click connection successful!');
+                log(`📍 Wallet: ${currentWallet.address}`);
+                log(`💰 Funded: ${result.funded ? 'Yes' : 'No'}`);
+                
+                // Update balance
+                await updateBalance();
+                
+            } catch (error) {
+                log('❌ One-click connection failed: ' + error.message);
+                updateConnectionStatus('Connection failed');
+                hideProgress();
+                document.getElementById('oneClickConnect').disabled = false;
+            }
+        });
+
+        // Quick Connect
+        document.getElementById('quickConnect').addEventListener('click', async () => {
+            if (!magicWallet) return;
+
+            try {
+                log('⚡ Attempting quick connect...');
+                
+                const result = await magicWallet.quickConnect('Demo Stacks dApp');
+                currentWallet = result.wallet;
+                
+                if (result.isExisting) {
+                    log('✅ Restored existing session');
+                    updateConnectionStatus('Reconnected');
+                } else {
+                    log('✅ Created new session');
+                    updateConnectionStatus('Connected');
+                }
+                
+                // Update UI
+                document.getElementById('walletAddress').textContent = currentWallet.address;
+                document.getElementById('walletStatus').textContent = 'Connected';
+                
+                showConnectedState();
+                await updateBalance();
+                
+            } catch (error) {
+                log('❌ Quick connect failed: ' + error.message);
+            }
+        });
+
+        // Clear Session
+        document.getElementById('clearSession').addEventListener('click', async () => {
+            if (magicWallet) {
+                await magicWallet.disconnect();
+                currentWallet = null;
+                hideConnectedState();
+                updateConnectionStatus('Session cleared');
+                log('🗑️ Session cleared - demo reset');
+                document.getElementById('oneClickConnect').disabled = false;
+            }
+        });
+
+        // dApp Feature Demos
+        document.getElementById('sendDemo').addEventListener('click', () => {
+            const recipient = prompt('Enter recipient address (or use a demo address):') || 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
+            const amount = parseFloat(prompt('Enter amount in STX:') || '0.001');
+            
+            if (recipient && amount) {
+                magicWallet.sendSTX(recipient, amount, { memo: 'Demo transaction from Magic Wallet SDK' })
+                    .then(txid => {
+                        log(`📤 Transaction sent: ${txid}`);
+                        setTimeout(updateBalance, 5000);
+                    })
+                    .catch(error => log(`❌ Transaction failed: ${error.message}`));
+            }
+        });
+
+        document.getElementById('showSeedDemo').addEventListener('click', () => {
+            magicWallet.showSeedPhrase({
+                title: '🔑 Demo dApp - Your Wallet Backup',
+                showCopy: true,
+                showDownloadTxt: true
+            }).catch(error => log(`❌ Failed to show seed: ${error.message}`));
+        });
+
+        document.getElementById('checkBalanceDemo').addEventListener('click', updateBalance);
+
+        document.getElementById('exportDemo').addEventListener('click', () => {
+            magicWallet.exportWalletToPDF({
+                filename: 'demo-dapp-wallet-backup.pdf'
+            }).catch(error => log(`❌ Export failed: ${error.message}`));
+        });
+
+        document.getElementById('disconnectWallet').addEventListener('click', async () => {
+            await magicWallet.disconnect();
+            currentWallet = null;
+            hideConnectedState();
+            updateConnectionStatus('Disconnected');
+            log('🔌 Disconnected from dApp');
+            document.getElementById('oneClickConnect').disabled = false;
+        });
+
+        log('🎯 Demo dApp ready! Click "Connect Wallet & Start Exploring" to begin');
+    </script>
+</body>
+</html>
